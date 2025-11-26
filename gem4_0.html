@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الطلاب (الإصدار الأسطوري)</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --dark-bg: #1e1e2e;
+            --light-bg: #f8f9fa;
+            --card-dark: #2d2d44;
+            --card-light: #ffffff;
+            --text-dark: #e0e0e0;
+            --text-light: #2d3436;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #ff7675;
+            --shadow: 0 8px 30px rgba(0,0,0,0.12);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-light);
+            transition: var(--transition);
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        body.dark-mode { background: #1e1e2e; color: var(--text-dark); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .anim-enter { animation: fadeIn 0.4s ease-out forwards; }
+        .anim-pop { animation: scaleIn 0.3s ease-out forwards; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 25px; border-radius: var(--radius); box-shadow: var(--shadow);
+            color: white; margin-bottom: 30px; display: flex; flex-wrap: wrap;
+            justify-content: space-between; align-items: center; gap: 20px;
+        }
+
+        .header-title h1 { font-weight: 800; font-size: 1.6rem; margin-bottom: 5px; }
+        .header-controls { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,0.15); padding: 8px; border-radius: 12px; backdrop-filter: blur(5px); }
+
+        /* Buttons */
+        .btn {
+            border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer;
+            font-family: inherit; font-weight: 700; font-size: 0.9rem;
+            display: inline-flex; align-items: center; gap: 8px; transition: var(--transition);
+        }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn:active { transform: scale(0.96); }
+
+        .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 40px; height: 40px; justify-content: center; padding: 0; border-radius: 50%; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: #2d3436; }
+        .btn-outline { background: transparent; border: 1px solid #777; color: inherit; }
+
+        /* Month Trigger Button (Replaces Select) */
+        .month-trigger {
+            background: rgba(0,0,0,0.2); color: white; padding: 8px 15px; border-radius: 10px;
+            cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;
+            transition: 0.3s; min-width: 140px; justify-content: space-between;
+        }
+        .month-trigger:hover { background: rgba(0,0,0,0.3); }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card {
+            background: var(--card-light); padding: 20px; border-radius: var(--radius);
+            box-shadow: var(--shadow); display: flex; align-items: center; gap: 15px;
+            border-bottom: 4px solid var(--primary); transition: var(--transition);
+        }
+        body.dark-mode .stat-card { background: var(--card-dark); border: 1px solid rgba(255,255,255,0.05); border-bottom: 4px solid var(--primary); }
+        .stat-icon { font-size: 2rem; color: var(--primary); opacity: 0.8; }
+        .stat-info h3 { font-size: 1.6rem; font-weight: 800; margin: 0; }
+        .stat-info p { font-size: 0.85rem; opacity: 0.7; margin: 0; }
+
+        /* Groups & Students */
+        .group-card { background: var(--card-light); border-radius: var(--radius); margin-bottom: 20px; box-shadow: var(--shadow); overflow: hidden; transition: var(--transition); }
+        body.dark-mode .group-card { background: var(--card-dark); border: 1px solid rgba(255,255,255,0.05); }
+
+        .group-header { padding: 18px 25px; background: rgba(108, 92, 231, 0.08); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .group-header:hover { background: rgba(108, 92, 231, 0.12); }
+        .group-title h2 { font-size: 1.2rem; color: var(--primary); font-weight: 700; }
+        .group-meta { font-size: 0.85rem; opacity: 0.7; display: flex; gap: 15px; margin-top: 4px; }
+        
+        .group-body { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .group-body.active { display: block; }
+
+        .student-row {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 15px; padding: 12px 15px;
+            border-radius: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.03); border-right: 4px solid transparent; transition: 0.2s;
+        }
+        body.dark-mode .student-row { background: rgba(255,255,255,0.04); }
+        .student-row:hover { transform: translateX(-5px); background: rgba(0,0,0,0.05); }
+
+        .student-row.paid { border-right-color: var(--success); }
+        .student-row.partial { border-right-color: var(--warning); }
+        .student-row.unpaid { border-right-color: var(--danger); }
+
+        .st-name { font-weight: 700; font-size: 1rem; flex: 1; min-width: 140px; }
+        .st-status { 
+            font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: bold; cursor: pointer;
+            white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .paid .st-status { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+        .partial .st-status { background: rgba(253, 203, 110, 0.15); color: var(--warning); }
+        .unpaid .st-status { background: rgba(255, 118, 117, 0.15); color: var(--danger); }
+
+        /* Attendance */
+        .att-grid { display: flex; gap: 6px; }
+        .att-box {
+            width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.06); font-weight: bold; color: transparent; transition: 0.2s; font-size: 0.9rem;
+        }
+        body.dark-mode .att-box { background: rgba(255,255,255,0.1); }
+        .att-box.checked { background: var(--success); color: white; transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,184,148,0.3); }
+
+        /* FAB */
+        .fab {
+            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--primary)); color: white;
+            border: none; box-shadow: 0 10px 25px rgba(108, 92, 231, 0.5); cursor: pointer;
+            font-size: 1.5rem; display: flex; align-items: center; justify-content: center; z-index: 100;
+            transition: 0.3s;
+        }
+        .fab:hover { transform: scale(1.1) rotate(90deg); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000;
+            display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.3s;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        
+        .modal {
+            background: var(--card-light); width: 90%; max-width: 420px; padding: 25px;
+            border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            transform: scale(0.8); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        body.dark-mode .modal { background: #2a2a3c; }
+        .modal-overlay.show .modal { transform: scale(1); }
+        .form-input { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid transparent; background: rgba(0,0,0,0.04); color: inherit; font-family: inherit; margin-top: 8px; }
+        body.dark-mode .form-input { background: rgba(255,255,255,0.06); }
+        .form-input:focus { background: transparent; border-color: var(--primary); }
+
+        /* Month Grid Modal Styles (NEW) */
+        .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
+        .month-item {
+            padding: 15px 10px; text-align: center; border-radius: 12px; cursor: pointer; transition: 0.2s;
+            background: rgba(0,0,0,0.04); font-weight: bold; position: relative; overflow: hidden;
+        }
+        body.dark-mode .month-item { background: rgba(255,255,255,0.05); }
+        .month-item:hover { transform: translateY(-3px); background: rgba(108, 92, 231, 0.15); color: var(--primary); }
+        .month-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+        .month-item.active::after { content: '✔'; position: absolute; top: 2px; left: 5px; font-size: 0.7rem; opacity: 0.7; }
+
+        /* Delete Icon */
+        .delete-icon-wrapper { text-align: center; margin-bottom: 15px; }
+        .delete-icon-wrapper i { font-size: 3.5rem; color: var(--danger); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        @media print {
+            .no-print, .fab, .group-actions, .header-controls { display: none !important; }
+            .group-body { display: block !important; }
+            body { background: white; color: black; }
+            .group-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div class="container">
+        <header class="anim-enter">
+            <div class="header-title">
+                <h1>نظام الطلاب الأسطوري 🚀</h1>
+                <p id="currentDateDisplay">...</p>
+            </div>
+            <div class="header-controls">
+                <div class="month-trigger" onclick="openMonthModal()">
+                    <span id="headerMonthLabel">يناير</span>
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                
+                <button class="btn btn-icon" onclick="toggleTheme()" title="تغيير المظهر"><i class="fas fa-adjust"></i></button>
+                <button class="btn btn-icon" onclick="exportCSV()" title="تصدير Excel"><i class="fas fa-file-csv"></i></button>
+            </div>
+        </header>
+
+        <div class="stats-grid anim-enter" style="animation-delay: 0.1s;">
+            <div class="stat-card">
+                <i class="fas fa-user-graduate stat-icon"></i>
+                <div class="stat-info">
+                    <h3 id="totalStudents">0</h3>
+                    <p>إجمالي الطلاب</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-wallet stat-icon" style="color: var(--success);"></i>
+                <div class="stat-info">
+                    <h3 id="totalMoney">0</h3>
+                    <p>المدفوعات (د.ت)</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line stat-icon" style="color: var(--accent);"></i>
+                <div class="stat-info">
+                    <h3 id="attendanceRate">0%</h3>
+                    <p>نسبة الحضور</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="groupsContainer" class="anim-enter" style="animation-delay: 0.2s;"></div>
+    </div>
+
+    <button class="fab" onclick="openModal('groupModal')"><i class="fas fa-plus"></i></button>
+
+    <div class="modal-overlay" id="monthModal">
+        <div class="modal">
+            <h3 style="text-align: center; margin-bottom: 5px;">📅 اختر الشهر</h3>
+            <p style="text-align: center; opacity: 0.6; font-size: 0.8rem; margin-bottom: 10px;">انتقل بين الأشهر بسهولة</p>
+            <div class="month-grid" id="monthGridContainer">
+                </div>
+            <button class="btn btn-outline" onclick="closeModal('monthModal')" style="width: 100%; margin-top: 20px; justify-content: center;">إغلاق</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="groupModal">
+        <div class="modal">
+            <h3>📂 إضافة مجموعة</h3>
+            <input type="text" id="groupName" class="form-input" placeholder="اسم المجموعة (مثال: فيزياء)">
+            <input type="number" id="groupPrice" class="form-input" placeholder="سعر الحصة (د.ت)">
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeModal('groupModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="addGroup()">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal">
+            <h3>👤 إضافة طالب جديد</h3>
+            <input type="hidden" id="targetGroupId">
+            <input type="text" id="studentName" class="form-input" placeholder="اسم الطالب">
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeModal('studentModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="addStudent()">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <h3 style="text-align: center; margin-bottom: 15px;">💰 تسوية الدفع</h3>
+            <div id="paymentInfoText" style="text-align: center; margin-bottom: 15px; opacity: 0.8; font-size: 0.9rem;"></div>
+            <label style="font-size: 0.9rem; font-weight: bold;">المبلغ (د.ت):</label>
+            <input type="number" id="partialAmountInput" class="form-input" placeholder="أدخل المبلغ">
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn btn-success" onclick="confirmPayment('full')" style="justify-content: center;"><i class="fas fa-check-double"></i> دفع كامل السعر</button>
+                <button class="btn btn-warning" onclick="confirmPayment('partial')" style="justify-content: center;"><i class="fas fa-check"></i> حفظ المبلغ المدخل</button>
+                <button class="btn btn-danger" onclick="confirmPayment('zero')" style="justify-content: center;"><i class="fas fa-times"></i> إلغاء الدفع</button>
+            </div>
+            <button class="btn btn-outline" onclick="closeModal('paymentModal')" style="width: 100%; margin-top: 10px; justify-content: center;">إغلاق</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="text-align: center;">
+            <div class="delete-icon-wrapper"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 style="color: var(--danger); margin-bottom: 10px;">تأكيد الحذف</h3>
+            <p id="deleteConfirmText" style="margin-bottom: 25px; line-height: 1.6;">هل أنت متأكد؟</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-outline" onclick="closeModal('deleteModal')">تراجع</button>
+                <button class="btn btn-danger" onclick="executeDelete()">نعم، احذف</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const DB_KEY = 'legendary_student_sys_v6';
+        const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+        let groups = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        let currentMonth = new Date().getMonth();
+        
+        // Context Variables
+        let payCtx = { gIdx: null, sIdx: null };
+        let delCtx = { type: null, gIdx: null, sIdx: null };
+
+        // --- Initialization ---
+        function init() {
+            // Update Header Date
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('ar-TN', { weekday: 'long', day: 'numeric', month: 'long' });
+            
+            // Check Theme
+            if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark-mode');
+            
+            // Initial Render
+            updateHeaderMonthLabel();
+            render();
+        }
+
+        function save() {
+            localStorage.setItem(DB_KEY, JSON.stringify(groups));
+            updateStats();
+        }
+
+        // --- Core Rendering ---
+        function render() {
+            const container = document.getElementById('groupsContainer');
+            container.innerHTML = '';
+
+            if (groups.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; opacity: 0.6;">
+                        <i class="fas fa-layer-group" style="font-size: 4rem; margin-bottom: 20px; color: var(--secondary);"></i>
+                        <h3>القائمة فارغة</h3>
+                        <p>ابدأ بإضافة مجموعتك الأولى الآن!</p>
+                    </div>`;
+                updateStats();
+                return;
+            }
+
+            groups.forEach((group, gIndex) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'group-card';
+                
+                groupDiv.innerHTML = `
+                    <div class="group-header" onclick="toggleGroup(this)">
+                        <div class="group-title">
+                            <h2>${group.name}</h2>
+                            <div class="group-meta">
+                                <span><i class="fas fa-users"></i> ${group.students.length}</span>
+                                <span><i class="fas fa-coins"></i> ${group.price} د.ت</span>
+                            </div>
+                        </div>
+                        <div class="no-print" style="display: flex; gap: 8px;">
+                            <button class="btn btn-icon btn-success" style="width:32px; height:32px; font-size:0.8rem" onclick="event.stopPropagation(); openStudentModal(${gIndex})">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                            <button class="btn btn-icon btn-danger" style="width:32px; height:32px; font-size:0.8rem" onclick="event.stopPropagation(); askDelete('group', ${gIndex})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <i class="fas fa-chevron-down" style="margin-right:10px; transition:0.3s; align-self:center;"></i>
+                        </div>
+                    </div>
+                    <div class="group-body ${group.isOpen ? 'active' : ''}">
+                        ${renderStudents(group, gIndex)}
+                    </div>
+                `;
+                container.appendChild(groupDiv);
+            });
+            updateStats();
+        }
+
+        function renderStudents(group, gIndex) {
+            if (!group.students.length) return '<p style="text-align:center; opacity:0.5; font-size:0.9rem;">لا يوجد طلاب بعد</p>';
+
+            return group.students.map((student, sIndex) => {
+                if (!student.data) student.data = {};
+                if (!student.data[currentMonth]) student.data[currentMonth] = { paid: 0, att: [false, false, false, false] };
+                
+                const data = student.data[currentMonth];
+                const paidAmt = parseFloat(data.paid) || 0;
+                const price = parseFloat(group.price) || 0;
+
+                let statusClass = 'unpaid';
+                let statusIcon = '<i class="fas fa-times"></i>';
+                let statusLabel = 'غير خالص';
+
+                if (paidAmt >= price && price > 0) {
+                    statusClass = 'paid'; statusIcon = '<i class="fas fa-check-double"></i>'; statusLabel = 'تم الدفع';
+                } else if (paidAmt > 0) {
+                    statusClass = 'partial'; statusIcon = '<i class="fas fa-check"></i>'; statusLabel = `${paidAmt} د.ت`;
+                }
+
+                return `
+                <div class="student-row ${statusClass} anim-pop" style="animation-delay: ${sIndex * 0.03}s">
+                    <div class="st-name">${student.name}</div>
+                    
+                    <div class="st-status" onclick="openPaymentModal(${gIndex}, ${sIndex})">
+                        ${statusIcon} <span>${statusLabel}</span>
+                    </div>
+
+                    <div class="att-grid" style="margin: 0 15px;">
+                        ${[0, 1, 2, 3].map(w => `
+                            <div class="att-box ${data.att[w] ? 'checked' : ''}" onclick="toggleAtt(${gIndex}, ${sIndex}, ${w})">
+                                ${data.att[w] ? '<i class="fas fa-check"></i>' : (w + 1)}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="no-print">
+                        <button class="btn-icon" style="background:transparent; color:var(--danger); width:30px; height:30px;" onclick="askDelete('student', ${gIndex}, ${sIndex})">
+                            <i class="fas fa-minus-circle"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Month Modal Logic (NEW) ---
+        function openMonthModal() {
+            const grid = document.getElementById('monthGridContainer');
+            grid.innerHTML = '';
+            
+            monthNames.forEach((m, idx) => {
+                const el = document.createElement('div');
+                el.className = `month-item ${idx === currentMonth ? 'active' : ''}`;
+                el.innerText = m;
+                el.onclick = () => selectMonth(idx);
+                grid.appendChild(el);
+            });
+            openModal('monthModal');
+        }
+
+        function selectMonth(idx) {
+            currentMonth = idx;
+            updateHeaderMonthLabel();
+            render();
+            closeModal('monthModal');
+        }
+
+        function updateHeaderMonthLabel() {
+            document.getElementById('headerMonthLabel').innerText = monthNames[currentMonth];
+        }
+
+        // --- Other Modal Logic ---
+        function toggleGroup(header) {
+            const body = header.nextElementSibling;
+            body.classList.toggle('active');
+            header.querySelector('.fa-chevron-down').style.transform = body.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+            
+            const gName = header.querySelector('h2').innerText;
+            const g = groups.find(x => x.name === gName);
+            if(g) g.isOpen = body.classList.contains('active');
+            save();
+        }
+
+        function addGroup() {
+            const name = document.getElementById('groupName').value;
+            const price = document.getElementById('groupPrice').value;
+            if (name && price) {
+                groups.push({ name, price, isOpen: true, students: [] });
+                closeModal('groupModal');
+                document.getElementById('groupName').value = '';
+                save(); render();
+            }
+        }
+
+        function addStudent() {
+            const idx = document.getElementById('targetGroupId').value;
+            const name = document.getElementById('studentName').value;
+            if (name) {
+                groups[idx].students.push({ name, data: {} });
+                closeModal('studentModal');
+                document.getElementById('studentName').value = '';
+                save(); render();
+            }
+        }
+
+        function openPaymentModal(gIdx, sIdx) {
+            payCtx = { gIdx, sIdx };
+            const s = groups[gIdx].students[sIdx];
+            const p = groups[gIdx].price;
+            const paid = s.data[currentMonth].paid || 0;
+
+            document.getElementById('paymentInfoText').innerHTML = `الطالب: <b>${s.name}</b> <br> المطلوب: ${p} د.ت`;
+            document.getElementById('partialAmountInput').value = paid > 0 ? paid : '';
+            openModal('paymentModal');
+            setTimeout(() => document.getElementById('partialAmountInput').focus(), 100);
+        }
+
+        function confirmPayment(type) {
+            const s = groups[payCtx.gIdx].students[payCtx.sIdx];
+            const price = parseFloat(groups[payCtx.gIdx].price);
+            
+            if (type === 'full') s.data[currentMonth].paid = price;
+            else if (type === 'zero') s.data[currentMonth].paid = 0;
+            else {
+                const val = parseFloat(document.getElementById('partialAmountInput').value);
+                if (val >= 0) s.data[currentMonth].paid = val;
+            }
+            save(); render(); closeModal('paymentModal');
+        }
+
+        function toggleAtt(gIdx, sIdx, w) {
+            const val = groups[gIdx].students[sIdx].data[currentMonth].att[w];
+            groups[gIdx].students[sIdx].data[currentMonth].att[w] = !val;
+            save(); render();
+        }
+
+        function askDelete(type, gIdx, sIdx = null) {
+            delCtx = { type, gIdx, sIdx };
+            const txt = document.getElementById('deleteConfirmText');
+            
+            if (type === 'group') {
+                const name = groups[gIdx].name;
+                txt.innerHTML = `أنت على وشك حذف مجموعة <b>"${name}"</b>.<br>سيتم حذف جميع الطلاب بداخلها!<br>هذا الإجراء لا رجعة فيه.`;
+            } else {
+                const name = groups[gIdx].students[sIdx].name;
+                txt.innerHTML = `أنت على وشك حذف الطالب <b>"${name}"</b>.<br>سيتم مسح سجلات الحضور والدفع الخاصة به.`;
+            }
+            openModal('deleteModal');
+        }
+
+        function executeDelete() {
+            if (delCtx.type === 'group') {
+                groups.splice(delCtx.gIdx, 1);
+            } else if (delCtx.type === 'student') {
+                groups[delCtx.gIdx].students.splice(delCtx.sIdx, 1);
+            }
+            save(); render(); closeModal('deleteModal');
+        }
+
+        // --- Helpers ---
+        function updateStats() {
+            let st = 0, money = 0, attP = 0, attT = 0;
+            groups.forEach(g => {
+                st += g.students.length;
+                g.students.forEach(s => {
+                    const d = s.data[currentMonth];
+                    if (d) {
+                        money += parseFloat(d.paid || 0);
+                        attP += d.att.filter(Boolean).length;
+                        attT += 4;
+                    }
+                });
+            });
+            document.getElementById('totalStudents').innerText = st;
+            document.getElementById('totalMoney').innerText = money.toFixed(1);
+            document.getElementById('attendanceRate').innerText = attT ? Math.round((attP/attT)*100) + '%' : '0%';
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        function exportCSV() {
+            let csv = "\uFEFFالمجموعة,الطالب,الشهر,الدفع,الأسبوع 1,الأسبوع 2,الأسبوع 3,الأسبوع 4\n";
+            const m = monthNames[currentMonth];
+            groups.forEach(g => {
+                g.students.forEach(s => {
+                    const d = s.data[currentMonth] || {paid:0, att:[0,0,0,0]};
+                    const att = d.att.map(a => a ? "1" : "0");
+                    csv += `"${g.name}","${s.name}","${m}","${d.paid}",${att.join(',')}\n`;
+                });
+            });
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+            a.download = `Student_Data_${m}.csv`;
+            a.click();
+        }
+
+        function openModal(id) { 
+            document.getElementById(id).classList.add('show'); 
+            if(id === 'studentModal') setTimeout(() => document.getElementById('studentName').focus(), 100);
+            if(id === 'groupModal') setTimeout(() => document.getElementById('groupName').focus(), 100);
+        }
+        function openStudentModal(idx) { document.getElementById('targetGroupId').value = idx; openModal('studentModal'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        window.onclick = (e) => { if(e.target.classList.contains('modal-overlay')) closeModal(e.target.id); }
+
+        init();
+    </script>
+</body>
+</html>
